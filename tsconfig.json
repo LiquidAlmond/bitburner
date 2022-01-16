@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "module": "ES6",
+    "module": "es2020",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "target": "ESNext",
@@ -10,8 +10,8 @@
     "outDir": "dist",
     "baseUrl": ".",
     "paths": {
-      "*": ["node_modules/*", "src/types/*", "src/*"],
+      "*": ["node_modules/*", "types/*", "src/*"],
     }
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "types/bitburner.d.ts"]
 }

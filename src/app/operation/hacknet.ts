@@ -1,4 +1,8 @@
+import { Action } from 'app/state/action';
+import { AppState } from 'app/state/state';
 import { NS, NodeStats } from 'bitburner';
+import { Operation } from 'lib/operation/operation';
+import { Store } from 'lib/state/state';
 
 interface HacknetNode extends NodeStats {
 	index: number;
@@ -12,8 +16,8 @@ interface HacknetNode extends NodeStats {
 
 interface Upgrade {
 	index: number;
-    type: string;
-    cost: number;
+	type: string;
+	cost: number;
 }
 
 function getNodes(ns: NS): HacknetNode[] {
@@ -85,10 +89,10 @@ async function upgradeNode(ns: NS, upgrade: Upgrade): Promise<void> {
 	upgraders[upgrade.type as keyof typeof upgraders](upgrade.index, 1);
 }
 
-/** @param {NS} ns **/
 export async function main(ns: NS) {
 	ns.disableLog("ALL");
 
+	const store = new Store<AppState>(ns);
 	let nodes = getNodes(ns);
 
 	while (upgradeAvailable(ns, nodes)) {
@@ -96,9 +100,9 @@ export async function main(ns: NS) {
 		const newNodeCost = ns.hacknet.getPurchaseNodeCost();
 
 		if (newNodeCost <= cheapestUpgrade.cost) {
-			purchaseNewNode(ns, newNodeCost);
+			await purchaseNewNode(ns, newNodeCost);
 		} else {
-			upgradeNode(ns, cheapestUpgrade);
+			await upgradeNode(ns, cheapestUpgrade);
 		}
 
 		await ns.sleep(100);

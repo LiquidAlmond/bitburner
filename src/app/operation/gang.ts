@@ -2,7 +2,11 @@ import { GangGenInfo, GangMemberInfo, NS } from "bitburner";
 
 export async function main(ns: NS) {
     ns.disableLog("ALL");
-    
+
+    while (!ns.gang.inGang()) {
+        await ns.sleep(10000);
+    }
+
 	while (true) {
         for (let i = 0; i < 75; i++) {
             recruitAll(ns);
@@ -18,8 +22,12 @@ export async function main(ns: NS) {
 
 const gangActions: GangAction[] = [
     {
+        action: "Train Combat",
+        predicate: (info) => info.member.str < 150,
+    },
+    {
         action: "Terrorism",
-        predicate: () => Math.random() < 0.2,
+        predicate: (info) => info.member.str > 150 && Math.random() < 0.2,
     },
     {
         action: "Territory Warfare",
@@ -28,10 +36,6 @@ const gangActions: GangAction[] = [
     {
         action: "Vigilante Justice",
         predicate: (info) => info.gang.wantedPenalty < 0.9 && info.gang.wantedLevel > 1.1,
-    },
-    {
-        action: "Mug People",
-        predicate: (info) => info.member.str < 150,
     },
     {
         action: "Strongarm Civilians",
@@ -63,19 +67,28 @@ function assignAction(ns: NS, name: string): void {
     ns.gang.setMemberTask(name, action.action);
 }
 
-function getStrongestMember(ns: NS): string {
+function getStrongestMember(ns: NS): string | undefined {
     return ns.gang.getMemberNames()
-        .map(name => ns.gang.getMemberInformation(name))
-        .map(member => ({ member, ascension: {
-            str: ns.gang.getAscensionResult(member.name).str / member.str_asc_mult,
+        .map(name => ({ name, info: ns.gang.getMemberInformation(name), ascension: ns.gang.getAscensionResult(name) }))
+        .map(member => ({ name: member.name, gains: {
+            str: (member.ascension?.str ?? 0) / member.info.str_asc_mult,
+            def: (member.ascension?.def ?? 0) / member.info.def_asc_mult,
+            dex: (member.ascension?.dex ?? 0) / member.info.dex_asc_mult,
+            agi: (member.ascension?.agi ?? 0) / member.info.agi_asc_mult,
         }}))
-        .sort((a,b) => b?.ascension?.str ?? 0 - a?.ascension?.str ?? 0)
+        .map(member => ({ name: member.name, avgGain: Object.values(member.gains).reduce((sum, stat) => sum + stat, 0) / 4}))
+        .filter(member => member.avgGain > 1.1)
+        .sort((a,b) => b.avgGain - a.avgGain)
         .find(() => true)
-        .member.name;
+        ?.name;
 }
 
 function ascendStrongest(ns: NS): void {
-    ns.gang.ascendMember(getStrongestMember(ns));
+    const member = getStrongestMember(ns);
+    ns.print(typeof member === "string" ? `Ascending ${member}.` : `No member strong enough to ascend.`);
+    if (typeof member === "string") {
+        ns.gang.ascendMember(member);
+    }
 }
 
 interface GangActionDiscriminant {

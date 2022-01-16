@@ -9,7 +9,9 @@ export async function main(ns: NS) {
 	const path = ns.args[0] as string ?? '';
     const files = ns.ls("home", ".js").concat(ns.ls("home", ".txt")).filter(file => file.startsWith(path));
     
-    if (!confirm(`Would you like the delete the following files?\n${files.join('\n')}`)) {
+    const confirmation = await ns.prompt(`Would you like the delete the following files?\n${files.join('\n')}`);
+    
+    if (!confirmation) {
         ns.print(`Canceling delete.`)
         return;
     }

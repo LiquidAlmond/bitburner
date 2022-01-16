@@ -5,7 +5,7 @@
   "scripts": {
     "start": "tsc -w",
     "build": "tsc",
-    "rebuild": "rimraf dist && npm run start"
+    "restart": "rimraf dist && npm run start"
   },
   "author": "",
   "license": "ISC",
