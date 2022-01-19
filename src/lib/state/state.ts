@@ -19,7 +19,6 @@ export class Store<T extends State> {
     constructor(private ns: NS) {}
 
     get state(): T {
-        this.ns.print(this.ns.peek(Port.STATE));
         return JSON.parse(this.ns.peek(Port.STATE));
     }
 

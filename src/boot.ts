@@ -18,17 +18,21 @@ export async function main(ns: NS) {
 
     // Reset state.
     await store.dispatch({ script: Action.CLEAR });
-    await store.dispatch({ script: Action.REFRESH_SERVERS });
-    await store.dispatch({ script: Action.REFRESH_UTILITIES });
-    
     await ns.sleep(1000);
+
+    await store.dispatch({ script: Action.ENABLE_OPERATION, parameters: [Operation.SERVER_UPDATES] });
+    await ns.sleep(11000);
 
     // Run operations.
     await store.dispatch({ script: Action.ENABLE_OPERATION, parameters: [Operation.NUKE] });
     await store.dispatch({ script: Action.ENABLE_OPERATION, parameters: [Operation.SCP] });
+
+    await ns.sleep(10000);
+
     await store.dispatch({ script: Action.ENABLE_OPERATION, parameters: [Operation.HACKING] });
     //await store.dispatch({ script: Action.ENABLE_OPERATION, parameters: [Operation.HACKNET] });
     await store.dispatch({ script: Action.ENABLE_OPERATION, parameters: [Operation.SERVERS] });
-    //await store.dispatch({ script: Action.ENABLE_OPERATION, parameters: [Operation.STOCK] });
+    await store.dispatch({ script: Action.ENABLE_OPERATION, parameters: [Operation.STOCK] });
     //await store.dispatch({ script: Action.ENABLE_OPERATION, parameters: [Operation.GANG] });
+    await store.dispatch({ script: Action.ENABLE_OPERATION, parameters: [Operation.CONTRACTS] });
 }

@@ -266,7 +266,27 @@ let contracts: Contract[] = [
         description: '',
         output: (input, solution) => ``,
         solver: (data) => {
-            return 1;
+            const isValid = (expr: string) => {
+                let depth = 0;
+                for (let char of expr) {
+                    if (char === "(") depth++;
+                    else if (char === ")") depth--;
+
+                    if (depth < 0) return false;
+                }
+                return depth === 0;
+            };
+
+            let result = [data];
+            while (result.length > 0) {
+                if (result.some(isValid)) break;
+                result = [...new Set(new Array(result[0].length).fill(0).map((_,i) => i)
+                    .flatMap(index => result.map(value => `${value.slice(0,index)}${value.slice(index+1)}`))
+                    .filter(value => value !== ""))]
+                ns.tprint(result);
+            }
+
+            return result.length === 0 ? [""] : result.filter(isValid);
         }
     },
     {
@@ -275,7 +295,32 @@ let contracts: Contract[] = [
         description: '',
         output: (input, solution) => `All valid expressions using "${input[0]}" that evaluate to ${input[1]} are\n${solution}`,
         solver: (data) => {
-            return 1;
+            const input = JSON.parse(data);
+            const num: string = input[0];
+            const target: number = input[1];
+
+            let result: string[] = [num];
+
+            for (let index of new Array(num.length - 1).fill(0).map((_,i) => i + 1).reverse()) {
+                result = result.flatMap(expr => {
+                    const firstHalf = expr.slice(0,index);
+                    const secondHalf = expr.slice(index);
+                    return [
+                        `${firstHalf}+${secondHalf}`,
+                        `${firstHalf}*${secondHalf}`,
+                        `${firstHalf}-${secondHalf}`,
+                        expr,
+                    ]
+                });
+            }
+
+            return result.filter(expr => {
+                try {
+                    return eval(expr) === target;
+                } catch (err) {
+                    return false;
+                }
+            });
         }
     }
 ];

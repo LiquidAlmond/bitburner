@@ -1,4 +1,7 @@
+import { AppState } from 'app/state/state';
 import { NS } from 'bitburner';
+import { Operation } from 'lib/operation/operation';
+import { Store } from 'lib/state/state';
 
 const settings = {
     balancePercent: [0.1, 0.2],
@@ -179,9 +182,12 @@ function format(num: number): string {
 export async function main(ns: NS) {
     //Initialise
     ns.disableLog("ALL");
+    const store = new Store<AppState>(ns);
     const portfolio = new Portfolio(ns);
 
-    while(true) {
+    let state = store.state;
+
+    while(state.enabled.includes(Operation.STOCK)) {
         portfolio.refreshPositions();
 
         const bestBuys = portfolio.getBestBuys()
@@ -227,5 +233,6 @@ export async function main(ns: NS) {
         }
         
         await ns.sleep(5 * 1000 * settings.cycles + 200);
+        state = store.state;
     }
 }

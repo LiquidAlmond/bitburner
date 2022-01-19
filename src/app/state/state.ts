@@ -8,12 +8,16 @@ export const defaultState: AppState = {
     utilities: [],
     hacking: {
         goal: "Money",
+        target: Host.JOESGUNS,
         processes: [],
         files: [
             "/app/script/hack.js",
             "/app/script/grow.js",
             "/app/script/weaken.js",
         ],
+    },
+    hacknet: {
+        nodes: [],
     },
     inGang: false,
 };
@@ -23,6 +27,7 @@ export interface AppState {
     utilities: Utility[];
     usableHosts: Server[];
     hacking: Hacking;
+    hacknet: Hacknet;
     inGang: boolean;
 }
 
@@ -30,6 +35,7 @@ export interface Hacking {
     goal: "XP" | "Money";
     processes: HackProcess[];
     files: string[];
+    target: Host;
 }
 
 export interface Server {
@@ -46,4 +52,15 @@ export interface HackProcess {
     type: "grow" | "hack" | "weaken";
     threads: number;
     target: Host;
+}
+
+export interface Hacknet {
+    nodes: HacknetNode[];
+}
+
+export interface HacknetNode {
+    id: number;
+    level: number;
+    ram: number;
+    cores: number;
 }

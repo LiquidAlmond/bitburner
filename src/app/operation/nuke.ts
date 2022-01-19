@@ -2,6 +2,7 @@ import { Action } from "app/state/action";
 import { AppState } from "app/state/state";
 import { NS } from "bitburner";
 import { Operation } from "lib/operation/operation";
+import { Host } from "lib/state/host";
 import { Store } from "lib/state/state";
 
 function getExecutables(ns: NS): Executable[] {

@@ -2,6 +2,7 @@ import { Action } from 'app/state/action';
 import { AppState } from 'app/state/state';
 import { NS, NodeStats } from 'bitburner';
 import { Operation } from 'lib/operation/operation';
+import { Host } from 'lib/state/host';
 import { Store } from 'lib/state/state';
 
 interface HacknetNode extends NodeStats {
@@ -93,19 +94,45 @@ export async function main(ns: NS) {
 	ns.disableLog("ALL");
 
 	const store = new Store<AppState>(ns);
+	let state = store.state;
 	let nodes = getNodes(ns);
 
-	while (upgradeAvailable(ns, nodes)) {
-		const cheapestUpgrade = getCheapestUpgrade(ns, nodes);
-		const newNodeCost = ns.hacknet.getPurchaseNodeCost();
+	while (state.enabled.includes(Operation.HACKNET)) {
+		const nodes = state.hacknet.nodes;
+		let cash = ns.getServerMoneyAvailable(Host.HOME);
 
-		if (newNodeCost <= cheapestUpgrade.cost) {
-			await purchaseNewNode(ns, newNodeCost);
-		} else {
-			await upgradeNode(ns, cheapestUpgrade);
+		for (let node of nodes) {
+			const gain = ns.formulas.hacknetNodes.moneyGainRate(node.level, node.ram, node.cores);
+			const spendLimit = Math.max(100000, gain * 3600);
+			
+			// compute deltas
+			const levelDelta = ns.formulas.hacknetNodes.moneyGainRate(node.level + 1, node.ram, node.cores) - gain;
+			const ramDelta = ns.formulas.hacknetNodes.moneyGainRate(node.level, node.ram + 1, node.cores) - gain;
+			const coreDelta = ns.formulas.hacknetNodes.moneyGainRate(node.level, node.ram, node.cores + 1) - gain;
+			const bestDelta = Math.max(levelDelta, ramDelta, coreDelta);
+			
+			if (levelDelta === bestDelta) {
+				let upgrades = 1;
+				while (spendLimit >= ns.formulas.hacknetNodes.levelUpgradeCost(node.level, upgrades, ns.getPlayer().hacknet_node_level_cost_mult)) upgrades++;
+				if (upgrades > 1) {
+					ns.hacknet.upgradeLevel(node.id, upgrades - 1);
+				}
+			} else if (ramDelta === bestDelta) {
+				let upgrades = 1;
+				while (spendLimit >= ns.formulas.hacknetNodes.ramUpgradeCost(node.level, upgrades, ns.getPlayer().hacknet_node_ram_cost_mult)) upgrades++;
+				if (upgrades > 1) {
+					ns.hacknet.upgradeRam(node.id, upgrades - 1);
+				}
+			} else {
+				let upgrades = 1;
+				while (spendLimit >= ns.formulas.hacknetNodes.coreUpgradeCost(node.level, upgrades, ns.getPlayer().hacknet_node_core_cost_mult)) upgrades++;
+				if (upgrades > 1) {
+					ns.hacknet.upgradeCore(node.id, upgrades - 1);
+				}
+			}
 		}
 
-		await ns.sleep(100);
-		nodes = getNodes(ns);
+		await ns.sleep(5000);
+		state = store.state;
 	}
 }

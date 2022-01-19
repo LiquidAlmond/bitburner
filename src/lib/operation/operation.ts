@@ -9,6 +9,8 @@ export enum Operation {
     KILLALL = "killall",
     CLEAN = "clean",
     SERVERS = "servers",
+    SERVER_UPDATES = "server-updates",
+    CONTRACTS = 'contracts',
 }
 
 const scripts = {
@@ -22,6 +24,8 @@ const scripts = {
     [Operation.KILLALL]: "/util/killall.js",
     [Operation.CLEAN]: "/util/clean-all-hosts.js",
     [Operation.SERVERS]: "/app/operation/servers.js",
+    [Operation.SERVER_UPDATES]: "/app/operation/server-updates.js",
+    [Operation.CONTRACTS]: "/app/operation/contract.js",
 };
 
 export function getOperationScript(op: Operation): string {

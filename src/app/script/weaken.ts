@@ -9,14 +9,8 @@ export async function main(ns: NS) {
     const store = new Store<AppState>(ns);
     let state = store.state;
 
-    while (state.enabled.includes(Operation.HACKING) && !state.hacking.processes.find(proc => proc.id === id)) {
-        await ns.sleep(1000);
-        state = store.state;
-    }
-
     while (state.enabled.includes(Operation.HACKING)) {
-        const target = state.hacking.processes.find(proc => proc.id === id).target;
-        await ns.weaken(target);
+        await ns.weaken(state.hacking.target);
         state = store.state;
     }
 }
